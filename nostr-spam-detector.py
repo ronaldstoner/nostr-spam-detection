@@ -12,6 +12,9 @@ import asyncio
 import websockets
 import datetime
 
+# Timeout to close relay websocket
+relay_timeout=5
+
 # Different relays may give different results. Some timeout, some loop, some keep alive.
 #relay = "wss://brb.io"
 #relay = "wss://nostr.rocks"
@@ -19,8 +22,8 @@ import datetime
 #relay = "wss://relayer.fiatjaf.com"
 #relay = "wss://nostr.onsats.org"
 #relay = "wss://nostr-relay.wlvs.space"
-relay = "wss://nostr-pub.wellorder.net"
-#relay = "wss://relay.stoner.com"
+#relay = "wss://nostr-pub.wellorder.net"
+relay = "wss://relay.stoner.com"
 #relay = "wss://nostr.fmt.wiz.biz"
 #relay = "wss://relay.nostr.bg"
 #relay = "wss://relay.damus.io"
@@ -31,20 +34,27 @@ pubkey_duplicates = {}
 
 async def connect_to_relay():
     print("Connecting to websocket...")
-    async with websockets.connect(relay, ping_interval=30) as websocket:
+    async with websockets.connect(relay, ping_interval=30) as relay_conn:
         print(f"Connected to {relay}")
 
         # Send a REQ message to subscribe to note events
         print("Subscribing to event types = 1")
-        await websocket.send(json.dumps(["REQ", "subscription_id", {"kinds": [1]}]))
+        await relay_conn.send(json.dumps(["REQ", "subscription_id", {"kinds": [1]}]))
 
         while True:
             try:
-                event = json.loads(await websocket.recv())
-            except asyncio.IncompleteReadError as e:
-                event = e.partial
-            if event[0] == "EVENT" and event[2]["kind"] == 1:
-                await handle_event(event)
+                event = await asyncio.wait_for(relay_conn.recv(), timeout=relay_timeout)
+                event = json.loads(event)
+                if event[0] == "EVENT" and event[2]["kind"] == 1:
+                    await handle_event(event)
+            except asyncio.TimeoutError:
+                print("Timeout occurred, closing websocket.")
+                await relay_conn.close()
+                break
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                await relay_conn.close()
+                break
 
 async def handle_event(event):
     content = event[2]
@@ -63,7 +73,6 @@ async def handle_event(event):
 if __name__ == "__main__":
     try:
         asyncio.run(connect_to_relay())
-        websockets.close()
         print("The script has finished.")
     except Exception as e:
         print(f"Exception: {e}\nThe script has finished.")
