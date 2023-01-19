@@ -16,3 +16,5 @@ This is a very early proof of concept. Just because your pubkey shows up in the 
 - Save event content to DB record
 - Introduce timing component (what is the time between pubkey posts?) (FALSE POSITIVE: bots)
 - Publish list for relay consumption
+- Detection of messages bursts based on timestamp
+- Scoring and confidence rates
