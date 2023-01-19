@@ -5,7 +5,11 @@
 #
 # Changelog
 # 0.1 - Initial PoC
-version = "0.1"
+# 0.1.1 - Websocket timeouts
+
+# NOTE: This script is a work in progress. Pubkeys identified should NOT be banned at this time until more accuracy and scoring as well as testing occurs. 
+
+version = "0.1.1"
 
 import json
 import asyncio
