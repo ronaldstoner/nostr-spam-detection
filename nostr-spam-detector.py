@@ -3,18 +3,15 @@
 # Project:      nostr relay spam detection
 # Members:      ronaldstoner
 #
-# Changelog
-# 0.1 - Initial PoC
-# 0.1.1 - Websocket timeouts
-
 # NOTE: This script is a work in progress. Pubkeys identified should NOT be banned at this time until more accuracy and scoring as well as testing occurs. 
 
-version = "0.1.1"
+version = "0.1.2"
 
 import json
 import asyncio
 import websockets
 import datetime
+import re
 
 # Timeout to close relay websocket
 relay_timeout=5
@@ -35,6 +32,12 @@ relay = "wss://relay.stoner.com"
 
 # Dictionary to store pubkeys and their duplicate event count
 pubkey_duplicates = {}
+# Dictionary to store pubkeys and their event count within a given time window
+pubkey_burst = {}
+
+# Load spam rules
+with open('spam.rules', 'r') as f:
+    spam_rules = json.load(f)
 
 async def connect_to_relay():
     print("Connecting to websocket...")
@@ -64,15 +67,35 @@ async def handle_event(event):
     content = event[2]
     pubkey = content["pubkey"]
     event_content = content["content"]
+    event_score = 0
 
     # Check if the pubkey has already posted this event content
     if pubkey in pubkey_duplicates and event_content in pubkey_duplicates[pubkey]:
         pubkey_duplicates[pubkey][event_content] += 1
-        print(f"Pubkey {pubkey} has posted duplicate content '{event_content}' {pubkey_duplicates[pubkey][event_content]} times")
+        event_score = spam_rules["001"]["weight"]
+        print(f"Pubkey {pubkey} has posted duplicate content '{event_content}' {pubkey_duplicates[pubkey][event_content]} times. Event score: {event_score}")
     else:
         if pubkey not in pubkey_duplicates:
             pubkey_duplicates[pubkey] = {}
         pubkey_duplicates[pubkey][event_content] = 1
+
+    # Check if the pubkey is sending a large burst of messages
+    now = datetime.datetime.now()
+    if pubkey in pubkey_burst:
+        if (now - pubkey_burst[pubkey]["last_message_time"]).seconds <= spam_rules["002"]["window"]:
+            pubkey_burst[pubkey]["message_count"] += 1
+            if pubkey_burst[pubkey]["message_count"] > spam_rules["002"]["value"]:
+                event_score += spam_rules["002"]["weight"]
+                print(f"Pubkey {pubkey} has sent a large burst of messages. Event score: {event_score}")
+        else:
+            pubkey_burst[pubkey]["message_count"] = 1
+    else:
+        pubkey_burst[pubkey] = {"message_count": 1, "last_message_time": now}
+
+    #Check if the event content has excessive use of capital letters
+    if re.search(spam_rules["003"]["regex"], event_content):
+        event_score += spam_rules["003"]["weight"]
+        print(f"Pubkey {pubkey} has used excessive capital letters in the event content. Event score: {event_score}")
 
 if __name__ == "__main__":
     try:
@@ -80,3 +103,4 @@ if __name__ == "__main__":
         print("The script has finished.")
     except Exception as e:
         print(f"Exception: {e}\nThe script has finished.")
+
