@@ -11,6 +11,7 @@ This script connects to a remote nostr relay and queries for event type 1. If th
 This is a very early proof of concept. Just because your pubkey shows up in the list does NOT mean you are a spammer. The script will iterate and introduce more accuracy over time. 
 
 # TODO
+- DMs
 - Class everything
 - Save pubkey list to DB
 - Save event content to DB record
