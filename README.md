@@ -11,7 +11,7 @@ This script is used to detect note spam on the nostr decentralized event-based s
 This is a very early proof of concept. Just because your pubkey shows up in the list does NOT mean you are a spammer. The script will iterate and introduce more accuracy over time. 
 
 # Donations
-If you find this script useful or decide to use any of it's methods feel free to donate any spare sats you may have. This goes a long way to fueling the caffeine needed for late night development. 
+If you find this script useful or decide to use it in production feel free to donate any spare sats you may have. This goes a long way to fueling the caffeine needed for late night development. 
 
 ⚡Alby: stoner@getalby.com 
 
