@@ -8,6 +8,7 @@
 version = "0.1.3.2"
 
 import asyncio
+import datetime
 import json
 import re
 import websockets
@@ -15,7 +16,7 @@ from itertools import islice
 
 relay_timeout = 5     # Timeout to close relay websocket
 ping_keepalive = 30       # Ping keep alive time
-min_spam_score = 300  # Arbitrary minimum overall spam score to filter final results
+min_spam_score = 250  # Arbitrary minimum overall spam score to filter final results
 
 # Different relays may give different results. Some timeout, some loop, some keep alive.
 #relay = "wss://brb.io"
@@ -43,6 +44,8 @@ pubkey_burst = {}
 pubkey_tally = {}
 # Dictionary to store the rules violated and the count of each
 violated_rules = {}
+# Dictionary to store pubkeys and the last time they were flagged as an offender
+pubkey_offender_timestamp = {}
 
 # Iterate over the keys in the spam_rules
 for key in spam_rules:
@@ -120,12 +123,15 @@ async def handle_event(event):
         event_rules.append("003")
         violated_rules["003"]["count"] += 1
         event_examples.append(event_content)
+
     if pubkey not in pubkey_tally:
         pubkey_tally[pubkey] = {"score": event_score, "rules": event_rules, "examples": event_examples}
+        pubkey_offender_timestamp[pubkey] = event_timestamp
     else:
         pubkey_tally[pubkey]["score"] += event_score
         pubkey_tally[pubkey]["rules"].extend(event_rules)
         pubkey_tally[pubkey]["examples"].extend(event_examples)
+        pubkey_offender_timestamp[pubkey] = event_timestamp
 
 if __name__ == "__main__":
     try:
@@ -136,6 +142,7 @@ if __name__ == "__main__":
                 event_count = sum(values['rules'].count(r) for r in set(values["rules"]))
                 if values['score'] >= min_spam_score:
                     print(f"Pubkey: {pubkey}\nTotal Score: {values['score']}")
+                    print("Last Spam Event:", datetime.datetime.fromtimestamp(pubkey_offender_timestamp[pubkey]).strftime('%Y-%m-%d %H:%M:%S'), "\n")
                     print("Rules violated:")
                     for rule in set(values["rules"]):
                         print(f" - {rule} ({spam_rules[rule]['description']}) - {values['rules'].count(rule)} times")
