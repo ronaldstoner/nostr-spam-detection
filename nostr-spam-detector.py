@@ -3,9 +3,9 @@
 # Project:      nostr relay spam detection
 # Members:      ronaldstoner
 #
-# NOTE: This script is a work in progress. Pubkeys identified should NOT be banned at this time until more accuracy and scoring as well as testing occurs. 
+# NOTE: This script is a work in progress. Pubkeys identified should NOT be banned at this time until more accuracy and scoring as well as testing occurs.
 
-version = "0.1.3.1"
+version = "0.1.3.2"
 
 import asyncio
 import json
@@ -23,9 +23,9 @@ min_spam_score=300  # Arbitrary minimum overall spam score to filter final resul
 #relay = "wss://relayer.fiatjaf.com"
 #relay = "wss://nostr.onsats.org"
 #relay = "wss://nostr-relay.wlvs.space"
-#relay = "wss://nostr-pub.wellorder.net"
+relay = "wss://nostr-pub.wellorder.net"
 #relay = "wss://relay.stoner.com"
-relay = "wss://nostr.fmt.wiz.biz"
+#relay = "wss://nostr.fmt.wiz.biz"
 #relay = "wss://relay.nostr.bg"
 #relay = "wss://relay.damus.io"
 #relay = "wss://relay.snort.social"
@@ -81,6 +81,12 @@ async def handle_event(event):
     event_score = 0
     event_rules = []
     event_examples = []
+
+    # Check if the event content has only emojis (old manual reactions)
+    if all(ord(c) > 127 for c in event_content):
+        print("Event content is only emojis, ignoring...")
+        #drop the event
+        return
 
     # 001 - Check if the pubkey has already posted this event content
     if pubkey in pubkey_duplicates and event_content in pubkey_duplicates[pubkey]:
