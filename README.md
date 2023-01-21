@@ -5,7 +5,7 @@ Scripts to detect spammy nostr content
 <img src="https://github.com/ronaldstoner/nostr-spam-detection/blob/main/images/poc.png?raw=true" alt="A text console showing spammy pubkeys and their content" width="600">
 
 # Spam sucks
-This script connects to a remote nostr relay and queries for event type 1. If the script detects the rules in spam.rules it will track the pubkey, event, content, and assign a score. The script will print potentially spammy pubkeys and content once it is completed and has pulled enough info from the remote relay. 
+This script is used to detect note spam on the nostr decentralized event-based system, using a specific relay and set of rules to detect spam. It connects to a websocket endpoint on a relay, subscribes to events of a specific type, and receives events. It then checks each event against a set of predefined spam rules, which include checking for duplicate events and high burst of events from a specific public key, and assigns a score to the event based on the number of rules it violates. The script keeps track of the total score for each public key, and flags those that exceed a certain threshold as potential spammers. This is a work in progress and should not be used to ban any public keys until further testing and scoring is done.
 
 # NOTE
 This is a very early proof of concept. Just because your pubkey shows up in the list does NOT mean you are a spammer. The script will iterate and introduce more accuracy over time. 
@@ -14,10 +14,14 @@ This is a very early proof of concept. Just because your pubkey shows up in the 
 - DMs
 - Class everything
 - Save pubkey list to DB
-- Save event content to DB record
-- Don't track emojis and reactions
+- Save event content to DB record with associated data
+- Output final pubkey list to csv based on min score
+- ~~Introduce timing component (what is the time between pubkey posts?)~~ (FALSE POSITIVE: bots)
+- ~~Detection of messages bursts based on timestamp~~
+- ~~Scoring and confidence rates~~
+- ~~Don't track emojis~~ and reactions
 - Whitelist pubkeys to be removed from results
-- Fix scoring rates
+- Adjust scoring rates
 - Let user set all variables for scoring, display, event counts
 - Front end client all the things
 - Stretch: Publish list for relay consumption
