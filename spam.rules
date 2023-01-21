@@ -1,0 +1,17 @@
+{
+    "001": {
+        "description": "Duplicate event content",
+        "weight": 5
+    },
+    "002": {
+        "description": "Large burst of messages",
+        "weight": 8,
+        "value": 5,
+        "window": 10
+    },
+    "003": {
+        "description": "Excessive use of capital letters",
+        "weight": 10,
+        "regex": "[A-Z\\s]+"
+    }
+}
