@@ -41,10 +41,12 @@ pubkey_burst = {}
 # Dictionary to store the pubkeys and their spamming scores
 pubkey_tally = {}
 # Dictionary to store the rules violated and the count of each
-# TODO: Pull this recursively from spam.rules file
-violated_rules = {"001": {"description": "Duplicate event content", "count": 0},
-                  "002": {"description": "Large burst of messages", "count": 0},
-                  "003": {"description": "Excessive use of capital letters", "count": 0}}
+violated_rules = {}
+
+# Iterate over the keys in the spam_rules
+for key in spam_rules:
+    if key.startswith("00"):
+        violated_rules[key] = {"description": spam_rules[key]["description"], "count": 0}
 
 async def connect_to_relay():
     print("Connecting to websocket...")
