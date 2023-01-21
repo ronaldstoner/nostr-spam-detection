@@ -5,14 +5,13 @@
 #
 # NOTE: This script is a work in progress. Pubkeys identified should NOT be banned at this time until more accuracy and scoring as well as testing occurs. 
 
-version = "0.1.3"
+version = "0.1.3.1"
 
 import asyncio
-import datetime
-import itertools
 import json
 import re
 import websockets
+from itertools import islice
 
 # Timeout to close relay websocket
 relay_timeout=5
@@ -76,11 +75,12 @@ async def handle_event(event):
     content = event[2]
     pubkey = content["pubkey"]
     event_content = content["content"]
+    event_timestamp = content["created_at"]
     event_score = 0
     event_rules = []
     event_examples = []
 
-    # Check if the pubkey has already posted this event content
+    # 001 - Check if the pubkey has already posted this event content
     if pubkey in pubkey_duplicates and event_content in pubkey_duplicates[pubkey]:
         pubkey_duplicates[pubkey][event_content] += 1
         event_score = spam_rules["001"]["weight"]
@@ -91,22 +91,22 @@ async def handle_event(event):
             pubkey_duplicates[pubkey] = {}
         pubkey_duplicates[pubkey][event_content] = 1
 
-    # Check if the pubkey is sending a large burst of messages
-    now = datetime.datetime.now()
-
+    # 002 - Check if the pubkey is sending a large burst of messages
     if pubkey in pubkey_burst:
-        if (now - pubkey_burst[pubkey]["last_message_time"]).seconds <= spam_rules["002"]["window"]:
-            pubkey_burst[pubkey]["message_count"] += 1
-            if pubkey_burst[pubkey]["message_count"] > spam_rules["002"]["value"]:
+        time_since_last_event = event_timestamp - pubkey_burst[pubkey]["last_event_timestamp"]
+        if time_since_last_event <= spam_rules["002"]["window"]:
+            pubkey_burst[pubkey]["event_count"] += 1
+            if pubkey_burst[pubkey]["event_count"] > spam_rules["002"]["value"]:
                 event_score += spam_rules["002"]["weight"]
                 event_rules.append("002")
                 violated_rules["002"]["count"] += 1
         else:
-            pubkey_burst[pubkey]["message_count"] = 1
+            # reset event_count if the time_since_last_event is greater than the window time
+            pubkey_burst[pubkey]["event_count"] = 1
     else:
-        pubkey_burst[pubkey] = {"message_count": 1, "last_message_time": now}
+        pubkey_burst[pubkey] = {"event_count": 1, "last_event_timestamp": event_timestamp}
 
-    #Check if the event content has excessive use of capital letters
+    #003 - Check if the event content has excessive use of capital letters
     if re.search(spam_rules["003"]["regex"], event_content):
         event_score += spam_rules["003"]["weight"]
         event_rules.append("003")
@@ -133,7 +133,6 @@ if __name__ == "__main__":
                     for rule in set(values["rules"]):
                         print(f" - {rule} ({spam_rules[rule]['description']}) - {values['rules'].count(rule)} times")
                     print("Examples of spam messages:")
-                    from itertools import islice
                     for example in islice(set(values["examples"]),5):
                         print(f" - {example}")
                     print("\n")
