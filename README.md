@@ -17,4 +17,5 @@ This is a very early proof of concept. Just because your pubkey shows up in the 
 - Whitelist pubkeys to be removed from results
 - Fix scoring rates
 - Let user set all variables for scoring, display, event counts
+- Front end client all the things
 - Stretch: Publish list for relay consumption
