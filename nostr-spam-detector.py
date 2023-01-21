@@ -11,12 +11,13 @@ import asyncio
 import datetime
 import json
 import re
+
 import websockets
 from itertools import islice
 
-relay_timeout = 5     # Timeout to close relay websocket
-ping_keepalive = 30       # Ping keep alive time
-min_spam_score = 250  # Arbitrary minimum overall spam score to filter final results
+relay_timeout = 5          # Timeout to close relay websocket
+ping_keepalive = 30        # Ping keep alive time
+min_spam_score = 250       # Arbitrary minimum overall spam score to filter final results
 
 # Different relays may give different results. Some timeout, some loop, some keep alive.
 #relay = "wss://brb.io"
@@ -26,6 +27,7 @@ min_spam_score = 250  # Arbitrary minimum overall spam score to filter final res
 #relay = "wss://nostr.onsats.org"
 #relay = "wss://nostr-relay.wlvs.space"
 relay = "wss://nostr-pub.wellorder.net"
+#relay = "wss://nostr.zebedee.cloud"
 #relay = "wss://relay.stoner.com"
 #relay = "wss://nostr.fmt.wiz.biz"
 #relay = "wss://relay.nostr.bg"
@@ -141,8 +143,9 @@ if __name__ == "__main__":
             if values['rules'] != []:
                 event_count = sum(values['rules'].count(r) for r in set(values["rules"]))
                 if values['score'] >= min_spam_score:
-                    print(f"Pubkey: {pubkey}\nTotal Score: {values['score']}")
-                    print("Last Spam Event:", datetime.datetime.fromtimestamp(pubkey_offender_timestamp[pubkey]).strftime('%Y-%m-%d %H:%M:%S'), "\n")
+                    print(f"Pubkey: {pubkey}")
+                    print("Last Spam Event:", datetime.datetime.fromtimestamp(pubkey_offender_timestamp[pubkey]).strftime('%Y-%m-%d %H:%M:%S'))
+                    print(f"Total Score: {values['score']}")
                     print("Rules violated:")
                     for rule in set(values["rules"]):
                         print(f" - {rule} ({spam_rules[rule]['description']}) - {values['rules'].count(rule)} times")
