@@ -14,6 +14,7 @@ This is a very early proof of concept. Just because your pubkey shows up in the 
 - Class everything
 - Save pubkey list to DB
 - Save event content to DB record
+- Don't track emojis and reactions
 - Whitelist pubkeys to be removed from results
 - Fix scoring rates
 - Let user set all variables for scoring, display, event counts
