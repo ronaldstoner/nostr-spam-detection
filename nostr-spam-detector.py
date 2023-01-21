@@ -13,8 +13,9 @@ import re
 import websockets
 from itertools import islice
 
-relay_timeout=5     # Timeout to close relay websocket
-min_spam_score=300  # Arbitrary minimum overall spam score to filter final results
+relay_timeout = 5     # Timeout to close relay websocket
+ping_keepalive = 30       # Ping keep alive time
+min_spam_score = 300  # Arbitrary minimum overall spam score to filter final results
 
 # Different relays may give different results. Some timeout, some loop, some keep alive.
 #relay = "wss://brb.io"
@@ -50,7 +51,7 @@ for key in spam_rules:
 
 async def connect_to_relay():
     print("Connecting to websocket...")
-    async with websockets.connect(relay, ping_interval=30) as relay_conn:
+    async with websockets.connect(relay, ping_interval=ping_keepalive) as relay_conn:
         print(f"Connected to {relay}")
 
         # Send a REQ message to subscribe to note events
@@ -84,7 +85,6 @@ async def handle_event(event):
 
     # Check if the event content has only emojis (old manual reactions)
     if all(ord(c) > 127 for c in event_content):
-        print("Event content is only emojis, ignoring...")
         #drop the event
         return
 
