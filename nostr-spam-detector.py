@@ -13,8 +13,8 @@ import re
 import websockets
 from itertools import islice
 
-# Timeout to close relay websocket
-relay_timeout=5
+relay_timeout=5     # Timeout to close relay websocket
+min_spam_score=300  # Arbitrary minimum overall spam score to filter final results
 
 # Different relays may give different results. Some timeout, some loop, some keep alive.
 #relay = "wss://brb.io"
@@ -126,8 +126,7 @@ if __name__ == "__main__":
         for pubkey, values in sorted(pubkey_tally.items(), key=lambda x: x[1]['score'], reverse=True):
             if values['rules'] != []:
                 event_count = sum(values['rules'].count(r) for r in set(values["rules"]))
-                # TODO: Tweak this to be configurable and check per rule, not global total
-                if event_count > 5:
+                if values['score'] >= min_spam_score:
                     print(f"Pubkey: {pubkey}\nTotal Score: {values['score']}")
                     print("Rules violated:")
                     for rule in set(values["rules"]):
