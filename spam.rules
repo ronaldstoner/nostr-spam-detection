@@ -12,6 +12,6 @@
     "003": {
         "description": "Excessive use of capital letters",
         "weight": 10,
-        "regex": "[A-Z\\s]+"
+        "regex": "m//^[^a-z]*$//"
     }
 }
